@@ -74,8 +74,13 @@ class SegmentService:
 
 
 class PricingEngine:
-    def price(self, policy: Policy) -> int:
-        return policy.base_premium_cents
+    def price(self, policy: Policy, segment: str) -> int:
+        amount = policy.base_premium_cents
+        if segment == "GOLD":
+            amount = apply_percent_discount(amount, 10)
+        if policy_age_in_days(policy.start_date) > 365:
+            amount = apply_percent_discount(amount, 5)
+        return amount
 
 
 # Helpers intentionally not used yet by pricing; change requests will make them relevant.
@@ -137,7 +142,7 @@ class QuoteOrchestrator:
         except SegmentServiceError:
             segment = "STANDARD"
 
-        premium_cents = self._pricing.price(policy)
+        premium_cents = self._pricing.price(policy, segment)
         quote = Quote(policy.policy_id, customer.customer_id, premium_cents)
 
         detail = "segment=" + segment + ";premium_cents=" + str(premium_cents)

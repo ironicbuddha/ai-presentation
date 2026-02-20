@@ -113,9 +113,15 @@ class AuditLog:
 class NotificationService:
     def __init__(self) -> None:
         self.sent_notifications: List[Notification] = []
+        self._sent_keys: Set[Tuple[str, str, str]] = set()
 
-    def send(self, notification: Notification) -> None:
+    def send(self, notification: Notification, customer_id: str, policy_id: str, event_type: str) -> bool:
+        key = (customer_id, policy_id, event_type)
+        if key in self._sent_keys:
+            return False
+        self._sent_keys.add(key)
         self.sent_notifications.append(notification)
+        return True
 
 
 class QuoteOrchestrator:
@@ -159,7 +165,10 @@ class QuoteOrchestrator:
             + str(premium_cents)
             + ")"
         )
-        self._notifications.send(Notification(channel="email", message=message))
+        notification = Notification(channel="email", message=message)
+        sent = self._notifications.send(notification, customer.customer_id, policy.policy_id, "QUOTE_CREATED")
+        if not sent:
+            self._audit.record("NOTIFICATION_SKIPPED", policy.policy_id, customer.customer_id, "reason=idempotent")
 
         return quote
 

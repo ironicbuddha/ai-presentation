@@ -64,5 +64,18 @@ class QuoteSystemTests(unittest.TestCase):
         self.assertEqual(200_00, quote.premium_cents)
 
 
+    def test_duplicate_quote_notification_is_idempotent(self) -> None:
+        _, _, _, notifications, audit, orchestrator = seed_system()
+
+        orchestrator.create_quote("POL-1")
+        orchestrator.create_quote("POL-1")
+
+        self.assertEqual(1, len(notifications.sent_notifications))
+
+        skipped = audit.find("NOTIFICATION_SKIPPED", "POL-1", "CUST-1")
+        self.assertEqual(1, len(skipped))
+        self.assertIn("reason=idempotent", skipped[0].detail)
+
+
 if __name__ == "__main__":
     unittest.main()

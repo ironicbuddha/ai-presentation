@@ -1,0 +1,6 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local presentation artifact
+Coding Dojo - 20-02-2026.key

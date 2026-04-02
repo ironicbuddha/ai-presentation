@@ -4,3 +4,11 @@ __pycache__/
 
 # Local presentation artifact
 Coding Dojo - 20-02-2026.key
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
